@@ -1,21 +1,20 @@
 #include "Game.h"
 
 auto main() -> int {
-  Game::Instance()->init("Game of Life");
+  auto game = Game::Instance();
+  game->init("Game of Life");
 
-  while (Game::Instance()->isRunning()) {
-    Game::Instance()->setFrameStart();
-    Game::Instance()->handleEvents();
+  while (game->isRunning()) {
+    game->setFrameStart();
+    game->handleEvents();
 
-    if(!Game::Instance()->isDrawing()) {
-      Game::Instance()->update();
-    }
+    if(!game->isDrawing()) { game->update(); }
 
-    Game::Instance()->render();
-    Game::Instance()->delay();
+    game->render();
+    game->delay();
   }
 
-  Game::Instance()->clean();
+  game->clean();
 
   return(EXIT_SUCCESS);
 }

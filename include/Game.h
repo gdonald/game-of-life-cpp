@@ -2,11 +2,13 @@
 #define GAME_H
 
 #include <iostream>
+#include <sstream>
+#include <thread>
+
 #include <SDL.h>
 #include <SDL2_gfxPrimitives.h>
 #include <SDL_ttf.h>
 
-#define FPS 8
 #define WINDOW_W 800
 #define WINDOW_H 600
 #define SIZE 10
@@ -17,7 +19,7 @@
 #define FONT "res/font/monofonto.ttf"
 
 enum Buttons {
-  BtnRun, BtnDraw,
+  BtnRun, BtnDraw, BtnSpeed,
   BtnCount
 };
 
@@ -55,6 +57,8 @@ public:
 
   void drawDrawButton();
 
+  void drawSpeedButton();
+
   static const short neighbors[8][2];
 
   int countNeighbors(int y, int x);
@@ -67,6 +71,8 @@ public:
 
   bool isDrawing();
 
+  int getDelayTime();
+
 private:
   static Game *instance;
 
@@ -74,12 +80,12 @@ private:
   SDL_Window *window{};
   SDL_Renderer *renderer{};
 
+  float speed = 8;
   Uint32 frameStart{}, frameTime{};
-  int delayTime = (int)(1000.0f / FPS);
 
   bool cells[ROWS][COLS]{};
 
-  TTF_Font *font;
+  TTF_Font *font{};
 
   bool drawing{};
 
@@ -87,6 +93,8 @@ private:
   int mouseY{};
 
   SDL_Rect btnRects[BtnCount]{};
+
+  SDL_Color colorBlack = {0, 0, 0, 0};
 };
 
 #endif

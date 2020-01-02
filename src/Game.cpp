@@ -1,4 +1,3 @@
-#include <thread>
 #include "Game.h"
 
 const short Game::neighbors[8][2] = {{-1, -1},
@@ -21,9 +20,9 @@ Game *Game::Instance() {
 }
 
 Game::Game() {
-  for (int y = 0; y < ROWS; y++)
-    for (int x = 0; x < COLS; x++)
-      cells[y][x] = false;
+  for (auto & cell : cells)
+    for (bool & x : cell)
+      x = false;
 
   // glider
   cells[0][5] = true;
@@ -36,9 +35,9 @@ Game::Game() {
 void Game::update() {
   bool newCells[ROWS][COLS];
 
-  for (int y = 0; y < ROWS; y++)
-    for (int x = 0; x < COLS; x++)
-      newCells[y][x] = false;
+  for (auto & newCell : newCells)
+    for (bool & x : newCell)
+      x = false;
 
   for (int y = 0; y < ROWS; y++) {
     for (int x = 0; x < COLS; x++) {
@@ -76,13 +75,15 @@ int Game::countNeighbors(int y, int x) {
     int xx = x + n[1];
 
 //    if (rand() % 100 > 50) { // wrap
-      if (yy <= -1) yy = ROWS - 1;
-      if (yy >= ROWS) yy = 0;
-      if (xx <= -1) xx = ROWS - 1;
-      if (xx >= COLS) xx = 0;
+//      if (yy <= -1) yy = ROWS - 1;
+//      if (yy >= ROWS) yy = 0;
+//      if (xx <= -1) xx = ROWS - 1;
+//      if (xx >= COLS) xx = 0;
 //    } else {
 //      if (yy < 0 || xx < 0 || yy >= ROWS || xx >= COLS) { continue; }
 //    }
+
+    if (yy < 0 || xx < 0 || yy >= ROWS || xx >= COLS) { continue; }
 
     if (cells[yy][xx]) { count++; }
   }
@@ -190,17 +191,18 @@ void Game::drawMenu() {
   SDL_RenderDrawLine(renderer, 0, WINDOW_H, WINDOW_W, WINDOW_H);
 
   drawing ? drawRunButton() : drawDrawButton();
+  drawSpeedButton();
 }
 
 void Game::drawRunButton() {
   btnRects[BtnRun].x = 9;
   btnRects[BtnRun].y = WINDOW_H + 8;
-  btnRects[BtnRun].w = 72;
+  btnRects[BtnRun].w = 62;
   btnRects[BtnRun].h = 32;
 
   Sint16 x0 = btnRects[BtnRun].x;
-  Sint16 x1 = btnRects[BtnRun].w;
-  Sint16 x2 = btnRects[BtnRun].w;
+  Sint16 x1 = btnRects[BtnRun].x + btnRects[BtnRun].w;
+  Sint16 x2 = btnRects[BtnRun].x + btnRects[BtnRun].w;
   Sint16 x3 = btnRects[BtnRun].x;
 
   Sint16 y0 = btnRects[BtnRun].y;
@@ -214,18 +216,18 @@ void Game::drawRunButton() {
   filledPolygonRGBA(renderer, vx, vy, 4, 0xaa, 0xaa, 0xff, 0xff);
 
   SDL_Color color = {0, 0, 0, 0};
-  writeText("RUN", 24, WINDOW_H + 8, font, color);
+  writeText("RUN", 24, WINDOW_H + 8, font, colorBlack);
 }
 
 void Game::drawDrawButton() {
   btnRects[BtnDraw].x = 9;
   btnRects[BtnDraw].y = WINDOW_H + 8;
-  btnRects[BtnDraw].w = 72;
+  btnRects[BtnDraw].w = 62;
   btnRects[BtnDraw].h = 32;
 
   Sint16 x0 = btnRects[BtnDraw].x;
-  Sint16 x1 = btnRects[BtnDraw].w;
-  Sint16 x2 = btnRects[BtnDraw].w;
+  Sint16 x1 = btnRects[BtnDraw].x + btnRects[BtnDraw].w;
+  Sint16 x2 = btnRects[BtnDraw].x + btnRects[BtnDraw].w;
   Sint16 x3 = btnRects[BtnDraw].x;
 
   Sint16 y0 = btnRects[BtnDraw].y;
@@ -239,7 +241,34 @@ void Game::drawDrawButton() {
   filledPolygonRGBA(renderer, vx, vy, 4, 0xaa, 0xaa, 0xff, 0xff);
 
   SDL_Color color = {0, 0, 0, 0};
-  writeText("DRAW", 18, WINDOW_H + 8, font, color);
+  writeText("DRAW", 18, WINDOW_H + 8, font, colorBlack);
+}
+
+void Game::drawSpeedButton() {
+  btnRects[BtnSpeed].x = 82;
+  btnRects[BtnSpeed].y = WINDOW_H + 8;
+  btnRects[BtnSpeed].w = 92;
+  btnRects[BtnSpeed].h = 32;
+
+  Sint16 x0 = btnRects[BtnSpeed].x;
+  Sint16 x1 = btnRects[BtnSpeed].x + btnRects[BtnSpeed].w;
+  Sint16 x2 = btnRects[BtnSpeed].x + btnRects[BtnSpeed].w;
+  Sint16 x3 = btnRects[BtnSpeed].x;
+
+  Sint16 y0 = btnRects[BtnSpeed].y;
+  Sint16 y1 = btnRects[BtnSpeed].y;
+  Sint16 y2 = WINDOW_H + btnRects[BtnSpeed].h;
+  Sint16 y3 = WINDOW_H + btnRects[BtnSpeed].h;
+
+  const Sint16 vx[4] = {x0, x1, x2, x3};
+  const Sint16 vy[4] = {y0, y1, y2, y3};
+
+  filledPolygonRGBA(renderer, vx, vy, 4, 0xaa, 0xaa, 0xff, 0xff);
+
+  std::ostringstream label;
+  label << "SPEED " << (int)(speed / 4);
+
+  writeText(label.str().c_str(), 90, WINDOW_H + 8, font, colorBlack);
 }
 
 void Game::handleEvents() {
@@ -266,10 +295,22 @@ void Game::handleClick(SDL_MouseButtonEvent *event) {
     return;
   }
 
-  if (drawing && insideRect(btnRects[BtnRun], mouseX, mouseY)) {
+  if(drawing && insideRect(btnRects[BtnRun], mouseX, mouseY)) {
     drawing = false;
-  } else if (!drawing && insideRect(btnRects[BtnDraw], mouseX, mouseY)) {
+    return;
+  }
+
+  if(!drawing && insideRect(btnRects[BtnDraw], mouseX, mouseY)) {
     drawing = true;
+    return;
+  }
+
+  if(insideRect(btnRects[BtnSpeed], mouseX, mouseY)) {
+    float newSpeed = speed + 4;
+    if (newSpeed > 36) { newSpeed = 4; }
+    speed = newSpeed;
+
+    return;
   }
 }
 
@@ -290,7 +331,7 @@ bool Game::isDrawing() {
 
 void Game::delay() {
   frameTime = SDL_GetTicks() - frameStart;
-  if (frameTime < delayTime) { SDL_Delay((int) (delayTime - frameTime)); }
+  if (frameTime < getDelayTime()) { SDL_Delay((int) (getDelayTime() - frameTime)); }
 }
 
 void Game::setFrameStart() {
@@ -310,4 +351,8 @@ void Game::writeText(const char *text, int x, int y, TTF_Font *font, SDL_Color c
 
   SDL_DestroyTexture(texture);
   SDL_FreeSurface(surface);
+}
+
+int Game::getDelayTime() {
+  return (int)(1000.0f / speed);
 }
