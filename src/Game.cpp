@@ -20,27 +20,30 @@ Game *Game::Instance() {
 }
 
 Game::Game() {
-  for (auto & cell : cells)
-    for (bool & x : cell)
-      x = false;
+  size = 10;
+  cols = WINDOW_W / size;
+  rows = WINDOW_H / size;
 
-  // glider
-  cells[0][5] = true;
-  cells[1][5] = true;
-  cells[2][5] = true;
-  cells[2][4] = true;
-  cells[1][3] = true;
+  cells = new bool*[rows];
+  for(int y = 0; y < rows; y++) {
+    cells[y] = new bool[cols];
+    for(int x = 0; x < cols; x++) {
+      cells[y][x] = false;
+    }
+  }
+
+  addGlider();
 }
 
 void Game::update() {
-  bool newCells[ROWS][COLS];
+  bool newCells[rows][cols];
 
   for (auto & newCell : newCells)
     for (bool & x : newCell)
       x = false;
 
-  for (int y = 0; y < ROWS; y++) {
-    for (int x = 0; x < COLS; x++) {
+  for (int y = 0; y < rows; y++) {
+    for (int x = 0; x < cols; x++) {
 
       // https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life
       // 1. Any live cell with fewer than two live neighbours dies, as if by underpopulation.
@@ -62,8 +65,8 @@ void Game::update() {
     }
   }
 
-  for (int y = 0; y < ROWS; y++)
-    for (int x = 0; x < COLS; x++)
+  for (int y = 0; y < rows; y++)
+    for (int x = 0; x < cols; x++)
       cells[y][x] = newCells[y][x];
 }
 
@@ -75,16 +78,17 @@ int Game::countNeighbors(int y, int x) {
     int xx = x + n[1];
 
 //    if (rand() % 100 > 50) { // wrap
-//      if (yy <= -1) yy = ROWS - 1;
-//      if (yy >= ROWS) yy = 0;
-//      if (xx <= -1) xx = ROWS - 1;
-//      if (xx >= COLS) xx = 0;
+//      if (yy <= -1) yy = rows - 1;
+//      if (yy >= rows) yy = 0;
+//      if (xx <= -1) xx = rows - 1;
+//      if (xx >= cols) xx = 0;
 //    } else {
-//      if (yy < 0 || xx < 0 || yy >= ROWS || xx >= COLS) { continue; }
+//      if (yy < 0 || xx < 0 || yy >= rows || xx >= cols) { continue; }
 //    }
 
-    if (yy < 0 || xx < 0 || yy >= ROWS || xx >= COLS) { continue; }
+    if (yy < 0 || xx < 0 || yy >= rows || xx >= cols) { continue; }
 
+//    std::cout << "yy: " << yy << " xx: " << xx << '\n';
     if (cells[yy][xx]) { count++; }
   }
 
@@ -147,21 +151,21 @@ void Game::render() {
 void Game::drawGrid() {
   SDL_SetRenderDrawColor(renderer, 0xee, 0xee, 0xee, 0xff);
 
-  for (int x = 0; x <= WINDOW_W; x += SIZE)
+  for (int x = 0; x <= WINDOW_W; x += size)
     SDL_RenderDrawLine(renderer, x, 0, x, WINDOW_H);
 
-  for (int y = 0; y <= WINDOW_H; y += SIZE)
+  for (int y = 0; y <= WINDOW_H; y += size)
     SDL_RenderDrawLine(renderer, 0, y, WINDOW_W, y);
 }
 
 void Game::drawCells() {
-  for (int y = 0; y < ROWS; y++) {
-    for (int x = 0; x < COLS; x++) {
+  for (int y = 0; y < rows; y++) {
+    for (int x = 0; x < cols; x++) {
       if (cells[y][x]) {
-        Sint16 x0 = x * SIZE;
-        Sint16 x1 = (x + 1) * SIZE;
-        Sint16 y0 = y * SIZE;
-        Sint16 y1 = (y + 1) * SIZE;
+        Sint16 x0 = x * size;
+        Sint16 x1 = (x + 1) * size;
+        Sint16 y0 = y * size;
+        Sint16 y1 = (y + 1) * size;
 
         const Sint16 vx[4] = {x0, x1, x1, x0};
         const Sint16 vy[4] = {y0, y0, y1, y1};
@@ -192,6 +196,7 @@ void Game::drawMenu() {
 
   drawing ? drawRunButton() : drawDrawButton();
   drawSpeedButton();
+  drawSizeButton();
 }
 
 void Game::drawRunButton() {
@@ -271,6 +276,33 @@ void Game::drawSpeedButton() {
   writeText(label.str().c_str(), 90, WINDOW_H + 8, font, colorBlack);
 }
 
+void Game::drawSizeButton() {
+  btnRects[BtnSize].x = 184;
+  btnRects[BtnSize].y = WINDOW_H + 8;
+  btnRects[BtnSize].w = 82;
+  btnRects[BtnSize].h = 32;
+
+  Sint16 x0 = btnRects[BtnSize].x;
+  Sint16 x1 = btnRects[BtnSize].x + btnRects[BtnSize].w;
+  Sint16 x2 = btnRects[BtnSize].x + btnRects[BtnSize].w;
+  Sint16 x3 = btnRects[BtnSize].x;
+
+  Sint16 y0 = btnRects[BtnSize].y;
+  Sint16 y1 = btnRects[BtnSize].y;
+  Sint16 y2 = WINDOW_H + btnRects[BtnSize].h;
+  Sint16 y3 = WINDOW_H + btnRects[BtnSize].h;
+
+  const Sint16 vx[4] = {x0, x1, x2, x3};
+  const Sint16 vy[4] = {y0, y1, y2, y3};
+
+  filledPolygonRGBA(renderer, vx, vy, 4, 0xaa, 0xaa, 0xff, 0xff);
+
+  std::ostringstream label;
+  label << "SIZE " << (int)(size / 5);
+
+  writeText(label.str().c_str(), 192, WINDOW_H + 8, font, colorBlack);
+}
+
 void Game::handleEvents() {
   SDL_Event event;
 
@@ -289,8 +321,8 @@ void Game::handleEvents() {
 
 void Game::handleClick(SDL_MouseButtonEvent *event) {
   if (drawing && mouseY < WINDOW_H) {
-    int x = mouseX / SIZE;
-    int y = mouseY / SIZE;
+    int x = mouseX / size;
+    int y = mouseY / size;
     cells[y][x] = !cells[y][x];
     return;
   }
@@ -310,6 +342,28 @@ void Game::handleClick(SDL_MouseButtonEvent *event) {
     if (newSpeed > 36) { newSpeed = 4; }
     speed = newSpeed;
 
+    return;
+  }
+
+  if(insideRect(btnRects[BtnSize], mouseX, mouseY)) {
+    int newSize = size + 5;
+    if (newSize > 45) { newSize = 5; }
+    size = newSize;
+
+    cols = WINDOW_W / size;
+    rows = WINDOW_H / size;
+
+    delete [] cells;
+    cells = new bool*[rows];
+
+    for(int y = 0; y < rows; y++) {
+      cells[y] = new bool[cols];
+      for (int x = 0; x < cols; x++) {
+        cells[y][x] = false;
+      }
+    }
+
+    addGlider();
     return;
   }
 }
@@ -355,4 +409,12 @@ void Game::writeText(const char *text, int x, int y, TTF_Font *font, SDL_Color c
 
 int Game::getDelayTime() {
   return (int)(1000.0f / speed);
+}
+
+void Game::addGlider() {
+  cells[0][2] = true;
+  cells[1][2] = true;
+  cells[2][2] = true;
+  cells[2][1] = true;
+  cells[1][0] = true;
 }

@@ -11,15 +11,12 @@
 
 #define WINDOW_W 800
 #define WINDOW_H 600
-#define SIZE 10
-#define COLS (WINDOW_W / SIZE)
-#define ROWS (WINDOW_H / SIZE)
 #define MENU_H 40
 
 #define FONT "res/font/monofonto.ttf"
 
 enum Buttons {
-  BtnRun, BtnDraw, BtnSpeed,
+  BtnRun, BtnDraw, BtnSpeed, BtnSize,
   BtnCount
 };
 
@@ -59,6 +56,8 @@ public:
 
   void drawSpeedButton();
 
+  void drawSizeButton();
+
   static const short neighbors[8][2];
 
   int countNeighbors(int y, int x);
@@ -73,6 +72,8 @@ public:
 
   int getDelayTime();
 
+  void addGlider();
+
 private:
   static Game *instance;
 
@@ -83,7 +84,10 @@ private:
   float speed = 8;
   Uint32 frameStart{}, frameTime{};
 
-  bool cells[ROWS][COLS]{};
+  int size;
+  int cols;
+  int rows;
+  bool **cells;
 
   TTF_Font *font{};
 

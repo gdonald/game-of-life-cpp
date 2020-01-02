@@ -7,10 +7,10 @@ auto main() -> int {
   while (game->isRunning()) {
     game->setFrameStart();
     game->handleEvents();
+    game->render();
 
     if(!game->isDrawing()) { game->update(); }
 
-    game->render();
     game->delay();
   }
 
