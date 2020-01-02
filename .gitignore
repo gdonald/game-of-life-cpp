@@ -4,4 +4,5 @@ CMakeFiles/
 Makefile
 cmake-build-debug/
 cmake_install.cmake
-game_of_life
+game-of-life
+game-of-life.cbp

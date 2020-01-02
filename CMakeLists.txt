@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10.2)
-project(game_of_life)
+project(game-of-life)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_C_COMPILER clang)
@@ -17,16 +17,16 @@ include_directories(include
         ${SDL2_GFX_INCLUDE_DIRS}
         ${SDL2_TTF_INCLUDE_DIRS})
 
-add_executable(game_of_life
+add_executable(game-of-life
         src/Game.cpp
         src/main.cpp)
 
-target_link_libraries(game_of_life
+target_link_libraries(game-of-life
         ${SDL2_LIBRARIES}
         ${SDL2_IMAGE_LIBRARIES}
         ${SDL2_GFX_LIBRARIES}
         ${SDL2_TTF_LIBRARIES})
 
-add_custom_command(TARGET game_of_life
+add_custom_command(TARGET game-of-life
         POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:game_of_life> ..)
+        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:game-of-life> ..)

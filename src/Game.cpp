@@ -23,13 +23,54 @@ Game *Game::Instance() {
 Game::Game() {
   for (int y = 0; y < ROWS; y++)
     for (int x = 0; x < COLS; x++)
-      cells[y][x] = false;
+      cells[y][x] = (rand() % 100) > 50;
 
-  cells[10][15] = true;
-  cells[11][15] = true;
-  cells[12][15] = true;
-  cells[12][14] = true;
-  cells[11][13] = true;
+//  // glider
+//  cells[0][5] = true;
+//  cells[1][5] = true;
+//  cells[2][5] = true;
+//  cells[2][4] = true;
+//  cells[1][3] = true;
+//
+//  // glider
+//  cells[5][0] = true;
+//  cells[5][1] = true;
+//  cells[5][2] = true;
+//  cells[4][2] = true;
+//  cells[3][1] = true;
+//
+//  // lightweight spaceship
+//  cells[11][13] = true;
+//  cells[11][16] = true;
+//  cells[12][12] = true;
+//  cells[13][12] = true;
+//  cells[13][16] = true;
+//  cells[14][12] = true;
+//  cells[14][13] = true;
+//  cells[14][14] = true;
+//  cells[14][15] = true;
+//
+//  // lightweight spaceship
+//  cells[31][33] = true;
+//  cells[31][36] = true;
+//  cells[32][32] = true;
+//  cells[33][32] = true;
+//  cells[33][36] = true;
+//  cells[34][32] = true;
+//  cells[34][33] = true;
+//  cells[34][34] = true;
+//  cells[34][35] = true;
+//
+//  // lightweight spaceship
+//  cells[34][36] = true;
+//  cells[34][39] = true;
+//  cells[35][35] = true;
+//  cells[36][35] = true;
+//  cells[36][39] = true;
+//  cells[37][35] = true;
+//  cells[37][36] = true;
+//  cells[37][37] = true;
+//  cells[37][38] = true;
 }
 
 void Game::update() {
@@ -74,7 +115,15 @@ int Game::countNeighbors(int y, int x) {
     int yy = y + n[0];
     int xx = x + n[1];
 
-    if (yy < 0 || xx < 0 || yy >= ROWS || xx >= COLS) { continue; } // TODO: wrap around
+    if (rand() % 100 > 50) { // wrap
+      if (yy <= -1) yy = ROWS - 1;
+      if (yy >= ROWS) yy = 0;
+      if (xx <= -1) xx = ROWS - 1;
+      if (xx >= COLS) xx = 0;
+    } else {
+      if (yy < 0 || xx < 0 || yy >= ROWS || xx >= COLS) { continue; }
+    }
+
     if (cells[yy][xx]) { count++; }
   }
 
@@ -120,7 +169,7 @@ void Game::render() {
 }
 
 void Game::drawGrid() {
-  SDL_SetRenderDrawColor(renderer, 0xdd, 0xdd, 0xdd, 0xff);
+  SDL_SetRenderDrawColor(renderer, 0xee, 0xee, 0xee, 0xff);
 
   for (int x = 0; x <= WINDOW_W; x += SIZE)
     SDL_RenderDrawLine(renderer, x, 0, x, WINDOW_H);
