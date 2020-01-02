@@ -23,54 +23,14 @@ Game *Game::Instance() {
 Game::Game() {
   for (int y = 0; y < ROWS; y++)
     for (int x = 0; x < COLS; x++)
-      cells[y][x] = (rand() % 100) > 50;
+      cells[y][x] = false;
 
-//  // glider
-//  cells[0][5] = true;
-//  cells[1][5] = true;
-//  cells[2][5] = true;
-//  cells[2][4] = true;
-//  cells[1][3] = true;
-//
-//  // glider
-//  cells[5][0] = true;
-//  cells[5][1] = true;
-//  cells[5][2] = true;
-//  cells[4][2] = true;
-//  cells[3][1] = true;
-//
-//  // lightweight spaceship
-//  cells[11][13] = true;
-//  cells[11][16] = true;
-//  cells[12][12] = true;
-//  cells[13][12] = true;
-//  cells[13][16] = true;
-//  cells[14][12] = true;
-//  cells[14][13] = true;
-//  cells[14][14] = true;
-//  cells[14][15] = true;
-//
-//  // lightweight spaceship
-//  cells[31][33] = true;
-//  cells[31][36] = true;
-//  cells[32][32] = true;
-//  cells[33][32] = true;
-//  cells[33][36] = true;
-//  cells[34][32] = true;
-//  cells[34][33] = true;
-//  cells[34][34] = true;
-//  cells[34][35] = true;
-//
-//  // lightweight spaceship
-//  cells[34][36] = true;
-//  cells[34][39] = true;
-//  cells[35][35] = true;
-//  cells[36][35] = true;
-//  cells[36][39] = true;
-//  cells[37][35] = true;
-//  cells[37][36] = true;
-//  cells[37][37] = true;
-//  cells[37][38] = true;
+  // glider
+  cells[0][5] = true;
+  cells[1][5] = true;
+  cells[2][5] = true;
+  cells[2][4] = true;
+  cells[1][3] = true;
 }
 
 void Game::update() {
@@ -115,14 +75,14 @@ int Game::countNeighbors(int y, int x) {
     int yy = y + n[0];
     int xx = x + n[1];
 
-    if (rand() % 100 > 50) { // wrap
+//    if (rand() % 100 > 50) { // wrap
       if (yy <= -1) yy = ROWS - 1;
       if (yy >= ROWS) yy = 0;
       if (xx <= -1) xx = ROWS - 1;
       if (xx >= COLS) xx = 0;
-    } else {
-      if (yy < 0 || xx < 0 || yy >= ROWS || xx >= COLS) { continue; }
-    }
+//    } else {
+//      if (yy < 0 || xx < 0 || yy >= ROWS || xx >= COLS) { continue; }
+//    }
 
     if (cells[yy][xx]) { count++; }
   }
@@ -140,14 +100,16 @@ void Game::init(const char *title) {
     exit(EXIT_FAILURE);
   }
 
-  window = SDL_CreateWindow(title, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WINDOW_W, WINDOW_H, 0);
+  int window_h = WINDOW_H + MENU_H;
+
+  window = SDL_CreateWindow(title, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WINDOW_W, window_h, 0);
 
   if (!window) {
     printf("Could not create window: %s\n", SDL_GetError());
     exit(EXIT_FAILURE);
   }
 
-  SDL_SetWindowMinimumSize(window, WINDOW_W, WINDOW_H);
+  SDL_SetWindowMinimumSize(window, WINDOW_W, window_h);
   renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
   if (!renderer) {
@@ -155,6 +117,18 @@ void Game::init(const char *title) {
     exit(EXIT_FAILURE);
   }
 
+  if (TTF_Init() == -1) {
+    printf("TTF_Init failed: %s\n", TTF_GetError());
+    exit(EXIT_FAILURE);
+  }
+
+  font = TTF_OpenFont(FONT, 21);
+  if (font == nullptr) {
+    printf("Failed to load font! Error: %s\n", TTF_GetError());
+    exit(EXIT_FAILURE);
+  }
+
+  drawing = false;
   running = true;
 }
 
@@ -164,6 +138,7 @@ void Game::render() {
 
   drawGrid();
   drawCells();
+  drawMenu();
 
   SDL_RenderPresent(renderer);
 }
@@ -195,6 +170,78 @@ void Game::drawCells() {
   }
 }
 
+void Game::drawMenu() {
+  Sint16 x0 = 0;
+  Sint16 x1 = WINDOW_W;
+  Sint16 x2 = WINDOW_W;
+  Sint16 x3 = 0;
+
+  Sint16 y0 = WINDOW_H;
+  Sint16 y1 = WINDOW_H;
+  Sint16 y2 = WINDOW_H + MENU_H;
+  Sint16 y3 = WINDOW_H + MENU_H;
+
+  const Sint16 vx[4] = {x0, x1, x2, x3};
+  const Sint16 vy[4] = {y0, y1, y2, y3};
+
+  filledPolygonRGBA(renderer, vx, vy, 4, 0xaa, 0xaa, 0xaa, 0xff);
+
+  SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0xff, 0xff);
+  SDL_RenderDrawLine(renderer, 0, WINDOW_H, WINDOW_W, WINDOW_H);
+
+  drawing ? drawRunButton() : drawDrawButton();
+}
+
+void Game::drawRunButton() {
+  btnRects[BtnRun].x = 9;
+  btnRects[BtnRun].y = WINDOW_H + 8;
+  btnRects[BtnRun].w = 72;
+  btnRects[BtnRun].h = 32;
+
+  Sint16 x0 = btnRects[BtnRun].x;
+  Sint16 x1 = btnRects[BtnRun].w;
+  Sint16 x2 = btnRects[BtnRun].w;
+  Sint16 x3 = btnRects[BtnRun].x;
+
+  Sint16 y0 = btnRects[BtnRun].y;
+  Sint16 y1 = btnRects[BtnRun].y;
+  Sint16 y2 = WINDOW_H + btnRects[BtnRun].h;
+  Sint16 y3 = WINDOW_H + btnRects[BtnRun].h;
+
+  const Sint16 vx[4] = {x0, x1, x2, x3};
+  const Sint16 vy[4] = {y0, y1, y2, y3};
+
+  filledPolygonRGBA(renderer, vx, vy, 4, 0xaa, 0xaa, 0xff, 0xff);
+
+  SDL_Color color = {0, 0, 0, 0};
+  writeText("RUN", 24, WINDOW_H + 8, font, color);
+}
+
+void Game::drawDrawButton() {
+  btnRects[BtnDraw].x = 9;
+  btnRects[BtnDraw].y = WINDOW_H + 8;
+  btnRects[BtnDraw].w = 72;
+  btnRects[BtnDraw].h = 32;
+
+  Sint16 x0 = btnRects[BtnDraw].x;
+  Sint16 x1 = btnRects[BtnDraw].w;
+  Sint16 x2 = btnRects[BtnDraw].w;
+  Sint16 x3 = btnRects[BtnDraw].x;
+
+  Sint16 y0 = btnRects[BtnDraw].y;
+  Sint16 y1 = btnRects[BtnDraw].y;
+  Sint16 y2 = WINDOW_H + btnRects[BtnDraw].h;
+  Sint16 y3 = WINDOW_H + btnRects[BtnDraw].h;
+
+  const Sint16 vx[4] = {x0, x1, x2, x3};
+  const Sint16 vy[4] = {y0, y1, y2, y3};
+
+  filledPolygonRGBA(renderer, vx, vy, 4, 0xaa, 0xaa, 0xff, 0xff);
+
+  SDL_Color color = {0, 0, 0, 0};
+  writeText("DRAW", 18, WINDOW_H + 8, font, color);
+}
+
 void Game::handleEvents() {
   SDL_Event event;
 
@@ -203,12 +250,42 @@ void Game::handleEvents() {
       case SDL_QUIT:
         running = false;
         break;
+      case SDL_MOUSEBUTTONUP:
+        SDL_GetMouseState(&mouseX, &mouseY);
+        handleClick(&event.button);
+        break;
     }
   }
 }
 
+void Game::handleClick(SDL_MouseButtonEvent *event) {
+  if (drawing && mouseY < WINDOW_H) {
+    int x = mouseX / SIZE;
+    int y = mouseY / SIZE;
+    cells[y][x] = !cells[y][x];
+    return;
+  }
+
+  if (drawing && insideRect(btnRects[BtnRun], mouseX, mouseY)) {
+    drawing = false;
+  } else if (!drawing && insideRect(btnRects[BtnDraw], mouseX, mouseY)) {
+    drawing = true;
+  }
+}
+
+bool Game::insideRect(SDL_Rect rect, int x, int y) {
+  return x > rect.x &&
+         x < rect.x + rect.w &&
+         y > rect.y &&
+         y < rect.y + rect.h;
+}
+
 bool Game::isRunning() {
   return running;
+}
+
+bool Game::isDrawing() {
+  return drawing;
 }
 
 void Game::delay() {
@@ -218,4 +295,19 @@ void Game::delay() {
 
 void Game::setFrameStart() {
   frameStart = SDL_GetTicks();
+}
+
+void Game::writeText(const char *text, int x, int y, TTF_Font *font, SDL_Color color) {
+  int w, h;
+
+  SDL_Surface *surface = TTF_RenderText_Blended(font, text, color);
+  SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
+
+  TTF_SizeText(font, text, &w, &h);
+  SDL_Rect rect = {.x = x, .y = y, .w = w, .h = h};
+
+  SDL_RenderCopy(renderer, texture, nullptr, &rect);
+
+  SDL_DestroyTexture(texture);
+  SDL_FreeSurface(surface);
 }

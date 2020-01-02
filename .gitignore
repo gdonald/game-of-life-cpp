@@ -6,3 +6,4 @@ cmake-build-debug/
 cmake_install.cmake
 game-of-life
 game-of-life.cbp
+.DS_Store

@@ -6,7 +6,11 @@ auto main() -> int {
   while (Game::Instance()->isRunning()) {
     Game::Instance()->setFrameStart();
     Game::Instance()->handleEvents();
-    Game::Instance()->update();
+
+    if(!Game::Instance()->isDrawing()) {
+      Game::Instance()->update();
+    }
+
     Game::Instance()->render();
     Game::Instance()->delay();
   }

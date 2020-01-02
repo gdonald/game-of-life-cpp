@@ -12,6 +12,14 @@
 #define SIZE 10
 #define COLS (WINDOW_W / SIZE)
 #define ROWS (WINDOW_H / SIZE)
+#define MENU_H 40
+
+#define FONT "res/font/monofonto.ttf"
+
+enum Buttons {
+  BtnRun, BtnDraw,
+  BtnCount
+};
 
 class Game {
 public:
@@ -41,9 +49,23 @@ public:
 
   void drawCells();
 
+  void drawMenu();
+
+  void drawRunButton();
+
+  void drawDrawButton();
+
   static const short neighbors[8][2];
 
   int countNeighbors(int y, int x);
+
+  void writeText(const char *text, int x, int y, TTF_Font *font, SDL_Color color);
+
+  void handleClick(SDL_MouseButtonEvent *event);
+
+  static bool insideRect(SDL_Rect rect, int x, int y);
+
+  bool isDrawing();
 
 private:
   static Game *instance;
@@ -56,6 +78,15 @@ private:
   int delayTime = (int)(1000.0f / FPS);
 
   bool cells[ROWS][COLS]{};
+
+  TTF_Font *font;
+
+  bool drawing{};
+
+  int mouseX{};
+  int mouseY{};
+
+  SDL_Rect btnRects[BtnCount]{};
 };
 
 #endif
