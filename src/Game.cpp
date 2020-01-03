@@ -124,6 +124,41 @@ void Game::init(const char *title) {
     exit(EXIT_FAILURE);
   }
 
+  btnRects[BtnRun].x = 9;
+  btnRects[BtnRun].y = WINDOW_H + 8;
+  btnRects[BtnRun].w = 62;
+  btnRects[BtnRun].h = 32;
+
+  btnRects[BtnDraw].x = 9;
+  btnRects[BtnDraw].y = WINDOW_H + 8;
+  btnRects[BtnDraw].w = 62;
+  btnRects[BtnDraw].h = 32;
+
+  btnRects[BtnSpeed].x = 82;
+  btnRects[BtnSpeed].y = WINDOW_H + 8;
+  btnRects[BtnSpeed].w = 92;
+  btnRects[BtnSpeed].h = 32;
+
+  btnRects[BtnSize].x = 185;
+  btnRects[BtnSize].y = WINDOW_H + 8;
+  btnRects[BtnSize].w = 82;
+  btnRects[BtnSize].h = 32;
+
+  btnRects[BtnWrap].x = 278;
+  btnRects[BtnWrap].y = WINDOW_H + 8;
+  btnRects[BtnWrap].w = 62;
+  btnRects[BtnWrap].h = 32;
+
+  btnRects[BtnClear].x = 682;
+  btnRects[BtnClear].y = WINDOW_H + 8;
+  btnRects[BtnClear].w = 72;
+  btnRects[BtnClear].h = 32;
+
+  btnRects[BtnRand].x = 764;
+  btnRects[BtnRand].y = WINDOW_H + 8;
+  btnRects[BtnRand].w = 23;
+  btnRects[BtnRand].h = 32;
+
   size = 10;
   cols = WINDOW_W / size;
   rows = WINDOW_H / size;
@@ -201,29 +236,14 @@ void Game::drawMenu() {
 }
 
 void Game::drawRunButton() {
-  btnRects[BtnRun].x = 9;
-  btnRects[BtnRun].y = WINDOW_H + 8;
-  btnRects[BtnRun].w = 62;
-  btnRects[BtnRun].h = 32;
-
   drawBtn(BtnRun, "RUN", colorBlack, 24);
 }
 
 void Game::drawDrawButton() {
-  btnRects[BtnDraw].x = 9;
-  btnRects[BtnDraw].y = WINDOW_H + 8;
-  btnRects[BtnDraw].w = 62;
-  btnRects[BtnDraw].h = 32;
-
   drawBtn(BtnDraw, "DRAW", colorBlack, 18);
 }
 
 void Game::drawSpeedButton() {
-  btnRects[BtnSpeed].x = 82;
-  btnRects[BtnSpeed].y = WINDOW_H + 8;
-  btnRects[BtnSpeed].w = 92;
-  btnRects[BtnSpeed].h = 32;
-
   std::ostringstream label;
   label << "SPEED " << (int)(speed / 4);
 
@@ -231,11 +251,6 @@ void Game::drawSpeedButton() {
 }
 
 void Game::drawSizeButton() {
-  btnRects[BtnSize].x = 185;
-  btnRects[BtnSize].y = WINDOW_H + 8;
-  btnRects[BtnSize].w = 82;
-  btnRects[BtnSize].h = 32;
-
   std::ostringstream label;
   label << "SIZE " << (int)(size / 5);
 
@@ -243,30 +258,15 @@ void Game::drawSizeButton() {
 }
 
 void Game::drawWrapButton() {
-  btnRects[BtnWrap].x = 278;
-  btnRects[BtnWrap].y = WINDOW_H + 8;
-  btnRects[BtnWrap].w = 62;
-  btnRects[BtnWrap].h = 32;
-
   SDL_Color color = wrap ? colorBlack : colorGrey;
   drawBtn(BtnWrap, "WRAP", color, 288);
 }
 
 void Game::drawClearButton() {
-  btnRects[BtnClear].x = 682;
-  btnRects[BtnClear].y = WINDOW_H + 8;
-  btnRects[BtnClear].w = 72;
-  btnRects[BtnClear].h = 32;
-
   drawBtn(BtnClear, "CLEAR", colorBlack, 691);
 }
 
 void Game::drawRandButton() {
-  btnRects[BtnRand].x = 764;
-  btnRects[BtnRand].y = WINDOW_H + 8;
-  btnRects[BtnRand].w = 23;
-  btnRects[BtnRand].h = 32;
-
   drawBtn(BtnRand, "!", colorBlack, 771);
 }
 
