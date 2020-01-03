@@ -8,6 +8,7 @@
 #include <SDL.h>
 #include <SDL2_gfxPrimitives.h>
 #include <SDL_ttf.h>
+#include <random>
 
 #define WINDOW_W 800
 #define WINDOW_H 600
@@ -16,7 +17,8 @@
 #define FONT "res/font/monofonto.ttf"
 
 enum Buttons {
-  BtnRun, BtnDraw, BtnSpeed, BtnSize, BtnWrap,
+  BtnRun, BtnDraw, BtnSpeed, BtnSize,
+  BtnWrap, BtnClear, BtnRand,
   BtnCount
 };
 
@@ -24,7 +26,7 @@ class Game {
 public:
   static Game *Instance();
 
-  Game();
+  Game() = default;
 
   ~Game() = default;
 
@@ -60,6 +62,12 @@ public:
 
   void drawWrapButton();
 
+  void drawClearButton();
+
+  void drawRandButton();
+
+  void drawBtn(Buttons button, const char *title, SDL_Color color, int xLoc);
+
   static const short neighbors[8][2];
 
   int countNeighbors(int y, int x);
@@ -86,10 +94,10 @@ private:
   float speed = 8;
   Uint32 frameStart{}, frameTime{};
 
-  int size;
-  int cols;
-  int rows;
-  bool **cells;
+  int size{};
+  int cols{};
+  int rows{};
+  bool **cells{};
 
   TTF_Font *font{};
 
@@ -103,6 +111,10 @@ private:
 
   SDL_Color colorBlack = {0, 0, 0, 0};
   SDL_Color colorGrey = {127, 127, 127, 0};
+
+  unsigned seed{};
+  std::default_random_engine generator;
+  std::uniform_int_distribution<int> distribution;
 };
 
 #endif

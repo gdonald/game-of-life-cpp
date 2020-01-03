@@ -12,27 +12,8 @@ const short Game::neighbors[8][2] = {{-1, -1},
 Game *Game::instance = nullptr;
 
 Game *Game::Instance() {
-  if (!instance) {
-    instance = new Game;
-  }
-
+  if (!instance) { instance = new Game; }
   return instance;
-}
-
-Game::Game() {
-  size = 10;
-  cols = WINDOW_W / size;
-  rows = WINDOW_H / size;
-
-  cells = new bool*[rows];
-  for(int y = 0; y < rows; y++) {
-    cells[y] = new bool[cols];
-    for(int x = 0; x < cols; x++) {
-      cells[y][x] = false;
-    }
-  }
-
-  addGlider();
 }
 
 void Game::update() {
@@ -95,10 +76,21 @@ int Game::countNeighbors(int y, int x) {
 }
 
 void Game::clean() {
+  delete [] cells;
 
+  TTF_CloseFont(font);
+  TTF_Quit();
+
+  SDL_DestroyRenderer(renderer);
+  SDL_DestroyWindow(window);
+  SDL_Quit();
 }
 
 void Game::init(const char *title) {
+  seed = std::chrono::system_clock::now().time_since_epoch().count();
+  generator = std::default_random_engine(seed);
+  distribution = std::uniform_int_distribution<int>(0, 99);
+
   if (SDL_Init(SDL_INIT_EVERYTHING)) {
     printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
     exit(EXIT_FAILURE);
@@ -131,6 +123,18 @@ void Game::init(const char *title) {
     printf("Failed to load font! Error: %s\n", TTF_GetError());
     exit(EXIT_FAILURE);
   }
+
+  size = 10;
+  cols = WINDOW_W / size;
+  rows = WINDOW_H / size;
+
+  cells = new bool*[rows];
+  for(int y = 0; y < rows; y++) {
+    cells[y] = new bool[cols];
+    for(int x = 0; x < cols; x++) { cells[y][x] = false; }
+  }
+
+  addGlider();
 
   drawing = false;
   running = true;
@@ -177,16 +181,11 @@ void Game::drawCells() {
 void Game::drawMenu() {
   Sint16 x0 = 0;
   Sint16 x1 = WINDOW_W;
-  Sint16 x2 = WINDOW_W;
-  Sint16 x3 = 0;
-
   Sint16 y0 = WINDOW_H;
-  Sint16 y1 = WINDOW_H;
-  Sint16 y2 = WINDOW_H + MENU_H;
-  Sint16 y3 = WINDOW_H + MENU_H;
+  Sint16 y1 = WINDOW_H + MENU_H;
 
-  const Sint16 vx[4] = {x0, x1, x2, x3};
-  const Sint16 vy[4] = {y0, y1, y2, y3};
+  const Sint16 vx[4] = {x0, x1, x1, x0};
+  const Sint16 vy[4] = {y0, y0, y1, y1};
 
   filledPolygonRGBA(renderer, vx, vy, 4, 0xaa, 0xaa, 0xaa, 0xff);
 
@@ -197,6 +196,8 @@ void Game::drawMenu() {
   drawSpeedButton();
   drawSizeButton();
   drawWrapButton();
+  drawClearButton();
+  drawRandButton();
 }
 
 void Game::drawRunButton() {
@@ -205,21 +206,7 @@ void Game::drawRunButton() {
   btnRects[BtnRun].w = 62;
   btnRects[BtnRun].h = 32;
 
-  Sint16 x0 = btnRects[BtnRun].x;
-  Sint16 x1 = btnRects[BtnRun].x + btnRects[BtnRun].w;
-  Sint16 x2 = btnRects[BtnRun].x + btnRects[BtnRun].w;
-  Sint16 x3 = btnRects[BtnRun].x;
-
-  Sint16 y0 = btnRects[BtnRun].y;
-  Sint16 y1 = btnRects[BtnRun].y;
-  Sint16 y2 = WINDOW_H + btnRects[BtnRun].h;
-  Sint16 y3 = WINDOW_H + btnRects[BtnRun].h;
-
-  const Sint16 vx[4] = {x0, x1, x2, x3};
-  const Sint16 vy[4] = {y0, y1, y2, y3};
-
-  filledPolygonRGBA(renderer, vx, vy, 4, 0xaa, 0xaa, 0xff, 0xff);
-  writeText("RUN", 24, WINDOW_H + 8, font, colorBlack);
+  drawBtn(BtnRun, "RUN", colorBlack, 24);
 }
 
 void Game::drawDrawButton() {
@@ -228,21 +215,7 @@ void Game::drawDrawButton() {
   btnRects[BtnDraw].w = 62;
   btnRects[BtnDraw].h = 32;
 
-  Sint16 x0 = btnRects[BtnDraw].x;
-  Sint16 x1 = btnRects[BtnDraw].x + btnRects[BtnDraw].w;
-  Sint16 x2 = btnRects[BtnDraw].x + btnRects[BtnDraw].w;
-  Sint16 x3 = btnRects[BtnDraw].x;
-
-  Sint16 y0 = btnRects[BtnDraw].y;
-  Sint16 y1 = btnRects[BtnDraw].y;
-  Sint16 y2 = WINDOW_H + btnRects[BtnDraw].h;
-  Sint16 y3 = WINDOW_H + btnRects[BtnDraw].h;
-
-  const Sint16 vx[4] = {x0, x1, x2, x3};
-  const Sint16 vy[4] = {y0, y1, y2, y3};
-
-  filledPolygonRGBA(renderer, vx, vy, 4, 0xaa, 0xaa, 0xff, 0xff);
-  writeText("DRAW", 18, WINDOW_H + 8, font, colorBlack);
+  drawBtn(BtnDraw, "DRAW", colorBlack, 18);
 }
 
 void Game::drawSpeedButton() {
@@ -251,25 +224,10 @@ void Game::drawSpeedButton() {
   btnRects[BtnSpeed].w = 92;
   btnRects[BtnSpeed].h = 32;
 
-  Sint16 x0 = btnRects[BtnSpeed].x;
-  Sint16 x1 = btnRects[BtnSpeed].x + btnRects[BtnSpeed].w;
-  Sint16 x2 = btnRects[BtnSpeed].x + btnRects[BtnSpeed].w;
-  Sint16 x3 = btnRects[BtnSpeed].x;
-
-  Sint16 y0 = btnRects[BtnSpeed].y;
-  Sint16 y1 = btnRects[BtnSpeed].y;
-  Sint16 y2 = WINDOW_H + btnRects[BtnSpeed].h;
-  Sint16 y3 = WINDOW_H + btnRects[BtnSpeed].h;
-
-  const Sint16 vx[4] = {x0, x1, x2, x3};
-  const Sint16 vy[4] = {y0, y1, y2, y3};
-
-  filledPolygonRGBA(renderer, vx, vy, 4, 0xaa, 0xaa, 0xff, 0xff);
-
   std::ostringstream label;
   label << "SPEED " << (int)(speed / 4);
 
-  writeText(label.str().c_str(), 90, WINDOW_H + 8, font, colorBlack);
+  drawBtn(BtnSpeed, label.str().c_str(), colorBlack, 90);
 }
 
 void Game::drawSizeButton() {
@@ -278,25 +236,10 @@ void Game::drawSizeButton() {
   btnRects[BtnSize].w = 82;
   btnRects[BtnSize].h = 32;
 
-  Sint16 x0 = btnRects[BtnSize].x;
-  Sint16 x1 = btnRects[BtnSize].x + btnRects[BtnSize].w;
-  Sint16 x2 = btnRects[BtnSize].x + btnRects[BtnSize].w;
-  Sint16 x3 = btnRects[BtnSize].x;
-
-  Sint16 y0 = btnRects[BtnSize].y;
-  Sint16 y1 = btnRects[BtnSize].y;
-  Sint16 y2 = WINDOW_H + btnRects[BtnSize].h;
-  Sint16 y3 = WINDOW_H + btnRects[BtnSize].h;
-
-  const Sint16 vx[4] = {x0, x1, x2, x3};
-  const Sint16 vy[4] = {y0, y1, y2, y3};
-
-  filledPolygonRGBA(renderer, vx, vy, 4, 0xaa, 0xaa, 0xff, 0xff);
-
   std::ostringstream label;
   label << "SIZE " << (int)(size / 5);
 
-  writeText(label.str().c_str(), 193, WINDOW_H + 8, font, colorBlack);
+  drawBtn(BtnSize, label.str().c_str(), colorBlack, 193);
 }
 
 void Game::drawWrapButton() {
@@ -305,23 +248,39 @@ void Game::drawWrapButton() {
   btnRects[BtnWrap].w = 62;
   btnRects[BtnWrap].h = 32;
 
-  Sint16 x0 = btnRects[BtnWrap].x;
-  Sint16 x1 = btnRects[BtnWrap].x + btnRects[BtnWrap].w;
-  Sint16 x2 = btnRects[BtnWrap].x + btnRects[BtnWrap].w;
-  Sint16 x3 = btnRects[BtnWrap].x;
+  SDL_Color color = wrap ? colorBlack : colorGrey;
+  drawBtn(BtnWrap, "WRAP", color, 288);
+}
 
-  Sint16 y0 = btnRects[BtnWrap].y;
-  Sint16 y1 = btnRects[BtnWrap].y;
-  Sint16 y2 = WINDOW_H + btnRects[BtnWrap].h;
-  Sint16 y3 = WINDOW_H + btnRects[BtnWrap].h;
+void Game::drawClearButton() {
+  btnRects[BtnClear].x = 682;
+  btnRects[BtnClear].y = WINDOW_H + 8;
+  btnRects[BtnClear].w = 72;
+  btnRects[BtnClear].h = 32;
 
-  const Sint16 vx[4] = {x0, x1, x2, x3};
-  const Sint16 vy[4] = {y0, y1, y2, y3};
+  drawBtn(BtnClear, "CLEAR", colorBlack, 691);
+}
+
+void Game::drawRandButton() {
+  btnRects[BtnRand].x = 764;
+  btnRects[BtnRand].y = WINDOW_H + 8;
+  btnRects[BtnRand].w = 23;
+  btnRects[BtnRand].h = 32;
+
+  drawBtn(BtnRand, "!", colorBlack, 771);
+}
+
+void Game::drawBtn(Buttons button, const char *title, SDL_Color color, int xLoc) {
+  Sint16 x0 = btnRects[button].x;
+  Sint16 x1 = btnRects[button].x + btnRects[button].w;
+  Sint16 y0 = btnRects[button].y;
+  Sint16 y1 = WINDOW_H + btnRects[button].h;
+
+  const Sint16 vx[4] = {x0, x1, x1, x0};
+  const Sint16 vy[4] = {y0, y0, y1, y1};
 
   filledPolygonRGBA(renderer, vx, vy, 4, 0xaa, 0xaa, 0xff, 0xff);
-
-  SDL_Color color = wrap ? colorBlack : colorGrey;
-  writeText("WRAP", 288, WINDOW_H + 8, font, color);
+  writeText(title, xLoc, WINDOW_H + 8, font, color);
 }
 
 void Game::handleEvents() {
@@ -379,9 +338,7 @@ void Game::handleClick(SDL_MouseButtonEvent *event) {
 
     for(int y = 0; y < rows; y++) {
       cells[y] = new bool[cols];
-      for (int x = 0; x < cols; x++) {
-        cells[y][x] = false;
-      }
+      for (int x = 0; x < cols; x++) { cells[y][x] = false; }
     }
 
     addGlider();
@@ -395,6 +352,29 @@ void Game::handleClick(SDL_MouseButtonEvent *event) {
 
   if(wrap && insideRect(btnRects[BtnWrap], mouseX, mouseY)) {
     wrap = false;
+    return;
+  }
+
+  if(insideRect(btnRects[BtnClear], mouseX, mouseY)) {
+    bool oldDrawing = drawing;
+    drawing = false;
+
+    for(int y = 0; y < rows; y++)
+      for (int x = 0; x < cols; x++) { cells[y][x] = false; }
+
+    drawing = oldDrawing;
+    return;
+  }
+
+  if(insideRect(btnRects[BtnRand], mouseX, mouseY)) {
+    bool oldDrawing = drawing;
+    drawing = false;
+
+    for(int y = 0; y < rows; y++)
+      for (int x = 0; x < cols; x++)
+        cells[y][x] = distribution(generator) > 50;
+
+    drawing = oldDrawing;
     return;
   }
 }
