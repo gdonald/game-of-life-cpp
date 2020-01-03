@@ -24,17 +24,13 @@ enum Buttons {
 
 class Game {
 public:
-  static Game *Instance();
-
-  Game() = default;
+  explicit Game(const char *title);
 
   ~Game() = default;
 
   void update();
 
   void clean();
-
-  void init(const char *title);
 
   void render();
 
@@ -74,47 +70,45 @@ public:
 
   void writeText(const char *text, int x, int y, TTF_Font *font, SDL_Color color);
 
-  void handleClick(SDL_MouseButtonEvent *event);
+  void handleClick();
 
   static bool insideRect(SDL_Rect rect, int x, int y);
 
   bool isDrawing();
 
-  int getDelayTime();
+  Uint32 getDelayTime();
 
   void addGlider();
 
 private:
-  static Game *instance;
-
-  bool running{};
-  SDL_Window *window{};
-  SDL_Renderer *renderer{};
-
-  float speed = 8;
-  Uint32 frameStart{}, frameTime{};
-
-  int size{};
-  int cols{};
-  int rows{};
   bool **cells{};
 
-  TTF_Font *font{};
+  float speed = 8;
 
-  bool drawing{};
-  bool wrap{};
+  unsigned seed{};
+  std::default_random_engine generator;
+  std::uniform_int_distribution<int> distribution;
 
   int mouseX{};
   int mouseY{};
+  int size{};
+  int cols{};
+  int rows{};
+
+  Uint32 frameStart{}, frameTime{};
 
   SDL_Rect btnRects[BtnCount]{};
 
   SDL_Color colorBlack = {0, 0, 0, 0};
   SDL_Color colorGrey = {127, 127, 127, 0};
 
-  unsigned seed{};
-  std::default_random_engine generator;
-  std::uniform_int_distribution<int> distribution;
+  SDL_Window *window{};
+  SDL_Renderer *renderer{};
+  TTF_Font *font{};
+
+  bool running{};
+  bool drawing{};
+  bool wrap{};
 };
 
 #endif

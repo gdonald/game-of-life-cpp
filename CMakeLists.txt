@@ -27,6 +27,8 @@ target_link_libraries(game-of-life
         ${SDL2_GFX_LIBRARIES}
         ${SDL2_TTF_LIBRARIES})
 
+target_compile_options(game-of-life PRIVATE -Werror -Wall -Wextra)
+
 add_custom_command(TARGET game-of-life
         POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:game-of-life> ..)

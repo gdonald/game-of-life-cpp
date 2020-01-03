@@ -1,8 +1,7 @@
 #include "Game.h"
 
 auto main() -> int {
-  auto game = Game::Instance();
-  game->init("Game of Life");
+  auto game = new Game("Game of Life");
 
   while (game->isRunning()) {
     game->setFrameStart();

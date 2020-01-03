@@ -9,13 +9,6 @@ const short Game::neighbors[8][2] = {{-1, -1},
                                      {1,  -1},
                                      {0,  -1}};
 
-Game *Game::instance = nullptr;
-
-Game *Game::Instance() {
-  if (!instance) { instance = new Game; }
-  return instance;
-}
-
 void Game::update() {
   bool newCells[rows][cols];
 
@@ -86,7 +79,7 @@ void Game::clean() {
   SDL_Quit();
 }
 
-void Game::init(const char *title) {
+Game::Game(const char *title) {
   seed = std::chrono::system_clock::now().time_since_epoch().count();
   generator = std::default_random_engine(seed);
   distribution = std::uniform_int_distribution<int>(0, 99);
@@ -293,13 +286,13 @@ void Game::handleEvents() {
         break;
       case SDL_MOUSEBUTTONUP:
         SDL_GetMouseState(&mouseX, &mouseY);
-        handleClick(&event.button);
+        handleClick();
         break;
     }
   }
 }
 
-void Game::handleClick(SDL_MouseButtonEvent *event) {
+void Game::handleClick() {
   if (drawing && mouseY < WINDOW_H) {
     int x = mouseX / size;
     int y = mouseY / size;
@@ -418,8 +411,8 @@ void Game::writeText(const char *text, int x, int y, TTF_Font *font, SDL_Color c
   SDL_FreeSurface(surface);
 }
 
-int Game::getDelayTime() {
-  return (int)(1000.0f / speed);
+Uint32 Game::getDelayTime() {
+  return (Uint32)(1000.0f / speed);
 }
 
 void Game::addGlider() {
