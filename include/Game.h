@@ -16,7 +16,7 @@
 #define FONT "res/font/monofonto.ttf"
 
 enum Buttons {
-  BtnRun, BtnDraw, BtnSpeed, BtnSize,
+  BtnRun, BtnDraw, BtnSpeed, BtnSize, BtnWrap,
   BtnCount
 };
 
@@ -58,6 +58,8 @@ public:
 
   void drawSizeButton();
 
+  void drawWrapButton();
+
   static const short neighbors[8][2];
 
   int countNeighbors(int y, int x);
@@ -92,6 +94,7 @@ private:
   TTF_Font *font{};
 
   bool drawing{};
+  bool wrap{};
 
   int mouseX{};
   int mouseY{};
@@ -99,6 +102,7 @@ private:
   SDL_Rect btnRects[BtnCount]{};
 
   SDL_Color colorBlack = {0, 0, 0, 0};
+  SDL_Color colorGrey = {127, 127, 127, 0};
 };
 
 #endif

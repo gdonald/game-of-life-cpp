@@ -77,18 +77,17 @@ int Game::countNeighbors(int y, int x) {
     int yy = y + n[0];
     int xx = x + n[1];
 
-//    if (rand() % 100 > 50) { // wrap
-//      if (yy <= -1) yy = rows - 1;
-//      if (yy >= rows) yy = 0;
-//      if (xx <= -1) xx = rows - 1;
-//      if (xx >= cols) xx = 0;
-//    } else {
-//      if (yy < 0 || xx < 0 || yy >= rows || xx >= cols) { continue; }
-//    }
+    if (wrap) {
+      if (yy <= -1) yy = rows - 1;
+      if (yy >= rows) yy = 0;
+      if (xx <= -1) xx = rows - 1;
+      if (xx >= cols) xx = 0;
+    } else {
+      if (yy < 0 || xx < 0 || yy >= rows || xx >= cols) { continue; }
+    }
 
     if (yy < 0 || xx < 0 || yy >= rows || xx >= cols) { continue; }
 
-//    std::cout << "yy: " << yy << " xx: " << xx << '\n';
     if (cells[yy][xx]) { count++; }
   }
 
@@ -197,6 +196,7 @@ void Game::drawMenu() {
   drawing ? drawRunButton() : drawDrawButton();
   drawSpeedButton();
   drawSizeButton();
+  drawWrapButton();
 }
 
 void Game::drawRunButton() {
@@ -219,8 +219,6 @@ void Game::drawRunButton() {
   const Sint16 vy[4] = {y0, y1, y2, y3};
 
   filledPolygonRGBA(renderer, vx, vy, 4, 0xaa, 0xaa, 0xff, 0xff);
-
-  SDL_Color color = {0, 0, 0, 0};
   writeText("RUN", 24, WINDOW_H + 8, font, colorBlack);
 }
 
@@ -244,8 +242,6 @@ void Game::drawDrawButton() {
   const Sint16 vy[4] = {y0, y1, y2, y3};
 
   filledPolygonRGBA(renderer, vx, vy, 4, 0xaa, 0xaa, 0xff, 0xff);
-
-  SDL_Color color = {0, 0, 0, 0};
   writeText("DRAW", 18, WINDOW_H + 8, font, colorBlack);
 }
 
@@ -277,7 +273,7 @@ void Game::drawSpeedButton() {
 }
 
 void Game::drawSizeButton() {
-  btnRects[BtnSize].x = 184;
+  btnRects[BtnSize].x = 185;
   btnRects[BtnSize].y = WINDOW_H + 8;
   btnRects[BtnSize].w = 82;
   btnRects[BtnSize].h = 32;
@@ -300,7 +296,32 @@ void Game::drawSizeButton() {
   std::ostringstream label;
   label << "SIZE " << (int)(size / 5);
 
-  writeText(label.str().c_str(), 192, WINDOW_H + 8, font, colorBlack);
+  writeText(label.str().c_str(), 193, WINDOW_H + 8, font, colorBlack);
+}
+
+void Game::drawWrapButton() {
+  btnRects[BtnWrap].x = 278;
+  btnRects[BtnWrap].y = WINDOW_H + 8;
+  btnRects[BtnWrap].w = 62;
+  btnRects[BtnWrap].h = 32;
+
+  Sint16 x0 = btnRects[BtnWrap].x;
+  Sint16 x1 = btnRects[BtnWrap].x + btnRects[BtnWrap].w;
+  Sint16 x2 = btnRects[BtnWrap].x + btnRects[BtnWrap].w;
+  Sint16 x3 = btnRects[BtnWrap].x;
+
+  Sint16 y0 = btnRects[BtnWrap].y;
+  Sint16 y1 = btnRects[BtnWrap].y;
+  Sint16 y2 = WINDOW_H + btnRects[BtnWrap].h;
+  Sint16 y3 = WINDOW_H + btnRects[BtnWrap].h;
+
+  const Sint16 vx[4] = {x0, x1, x2, x3};
+  const Sint16 vy[4] = {y0, y1, y2, y3};
+
+  filledPolygonRGBA(renderer, vx, vy, 4, 0xaa, 0xaa, 0xff, 0xff);
+
+  SDL_Color color = wrap ? colorBlack : colorGrey;
+  writeText("WRAP", 288, WINDOW_H + 8, font, color);
 }
 
 void Game::handleEvents() {
@@ -364,6 +385,16 @@ void Game::handleClick(SDL_MouseButtonEvent *event) {
     }
 
     addGlider();
+    return;
+  }
+
+  if(!wrap && insideRect(btnRects[BtnWrap], mouseX, mouseY)) {
+    wrap = true;
+    return;
+  }
+
+  if(wrap && insideRect(btnRects[BtnWrap], mouseX, mouseY)) {
+    wrap = false;
     return;
   }
 }
